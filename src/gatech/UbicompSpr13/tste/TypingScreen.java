@@ -1,15 +1,22 @@
 package gatech.UbicompSpr13.tste;
 
 import java.util.Random;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.inputmethodservice.KeyboardView;
+import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.app.Activity;
 import android.content.Intent;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnKeyListener;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.TextView;
 
 public class TypingScreen extends Activity {
@@ -23,6 +30,9 @@ public class TypingScreen extends Activity {
 	TextView timeRemaining;
 	Random randomGenerator = new Random();
 	int phrasesCount;
+	boolean startTimer = false;
+	EditText textArea;
+	TextView textView;
 	
 	/*
 	 * (non-Javadoc)
@@ -40,10 +50,36 @@ public class TypingScreen extends Activity {
 		if(timeRemaining == null)
 			timeRemaining = (TextView) findViewById(R.id.timeRemaining);
 		
+		if(textArea == null)
+			textArea = (EditText) findViewById(R.id.editText1);
+		
+		if(textView == null)
+			textView = (TextView) findViewById(R.id.textView1);
+		
 		text.setText(stringList.warmUpStrings[warmUpTextCount]);
 		warmUpTextCount++;
 		timer = new Timer();
 		phrasesCount = stringList.phrasesArray.length;
+		
+		
+		textArea.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				int a = 10;
+				a++;
+				if(event.getAction() == KeyEvent.ACTION_DOWN)
+				{
+					textView.setText(textView.getText().toString() + event.getUnicodeChar() + " Down " + event.getEventTime());
+				}
+				else if(event.getAction() == KeyEvent.ACTION_UP)
+				{
+					textView.setText(textView.getText().toString() + event.getUnicodeChar() + " Up " + event.getEventTime());
+				}
+				
+				return false;
+			}
+		});
 	}
 	
 	/*
@@ -59,9 +95,14 @@ public class TypingScreen extends Activity {
 		{
 			text.setText(stringList.warmUpStrings[warmUpTextCount]);
 			warmUpTextCount++;
-			
 			if(warmUpTextCount == warmUpTrials)
+				startTimer = true;
+		}
+		else
+		{
+			if(startTimer)
 			{
+				startTimer = false;
 				new CountDownTimer(trialDuration, 1000) {
 					
 					@Override
@@ -74,14 +115,12 @@ public class TypingScreen extends Activity {
 					
 					@Override
 					public void onFinish() {
-						//redirectToMainScreen();
+						redirectToMainScreen();
 					}
 				}.start();
 			}
-		}
-		else
-		{
-			int chosenPosition = randomGenerator.nextInt();
+			
+			int chosenPosition = randomGenerator.nextInt(phrasesCount);
 			text.setText(stringList.phrasesArray[chosenPosition]);
 		}
 	}
